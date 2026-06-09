@@ -1,0 +1,31 @@
+# 온프레미스 스마트 문서 정리 에이전트 설정
+# 모든 경로는 프로젝트 루트 기준 상대경로입니다.
+
+paths:
+  samples_dir: "data/samples"
+  output_dir: "data/output"
+  database: "data/documents.db"
+  layoutlm_weights: "models/layoutlm_classifier"
+
+ocr:
+  engine: "easyocr"     # easyocr (Mac 권장) | paddle (Linux/Windows)
+  lang: "korean"
+  use_gpu: false
+  use_angle_cls: false
+  cpu_threads: 1
+  timeout_seconds: 120
+  min_confidence: 0.5
+
+classification:
+  # LayoutLM 가중치가 없거나 신뢰도가 낮으면 키워드 fallback 사용
+  model_name: "microsoft/layoutlm-base-uncased"
+  labels: ["receipt", "business_card", "unknown"]
+  confidence_threshold: 0.55
+
+extraction:
+  # Ollama 로컬 LLM 설정
+  ollama_host: "http://localhost:11434"
+  model: "llama3"
+  temperature: 0.0
+  timeout_seconds: 120
+  max_retries: 1
