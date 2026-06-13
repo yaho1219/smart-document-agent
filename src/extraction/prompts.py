@@ -30,9 +30,21 @@ BUSINESS_CARD_SCHEMA = """{
 _BASE_INSTRUCTION = (
     "You are an information extraction engine for Korean business documents. "
     "Read the OCR text and return ONLY a valid JSON object that matches the "
-    "given schema. Do not add explanations, markdown, or code fences. "
-    "If a field is unknown, use an empty string or null. Numbers must not "
-    "contain currency symbols or thousands separators."
+    "given schema. Do not add explanations, markdown, or code fences.\n"
+    "STRICT RULES:\n"
+    "1. Copy every value VERBATIM from the OCR text. NEVER invent, translate, "
+    "or paraphrase. If a value is not present in the OCR text, use an empty "
+    "string or null.\n"
+    "2. payment_method must be the exact card/payment name as written in the "
+    "OCR text (e.g. 'NH카드', 'IBK비씨카드', '신한카드', '현금'). Do not "
+    "substitute it with a generic or different card name.\n"
+    "3. date must be normalized to YYYY-MM-DD format.\n"
+    "4. total is the final charged amount, usually labeled 합계, 총액, "
+    "결제금액, or 받을금액. It is normally the largest amount.\n"
+    "5. Numbers must be plain digits without currency symbols or thousands "
+    "separators.\n"
+    "6. OCR text may contain typos from misrecognition; still copy values "
+    "as written rather than guessing replacements."
 )
 
 

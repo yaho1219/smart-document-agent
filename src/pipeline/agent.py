@@ -56,9 +56,18 @@ class DocumentAgent:
         pre = preprocess_image(image_path)
         progress("이미지 전처리 완료", 0.18)
 
-        # 2) OCR (모델 로딩 + 추출 — 최초 실행 시 가장 오래 걸림)
+        # 2) OCR — 전처리본과 원본 둘 다 인식 후 신뢰도 높은 쪽 채택
+        #    (사진 품질에 따라 유리한 입력이 달라 인식률을 크게 좌우)
         progress("OCR 모델 준비", 0.22)
-        ocr = run_ocr(pre.processed, verbose=verbose)
+        ocr_proc = run_ocr(pre.processed, verbose=verbose)
+        progress("OCR 원본 재인식", 0.32)
+        ocr_orig = run_ocr(pre.original, verbose=verbose)
+
+        def _score(o):
+            return sum(w.confidence for w in o.words)
+
+        ocr = ocr_proc if _score(ocr_proc) >= _score(ocr_orig) else ocr_orig
+
         progress("OCR 추출 완료", 0.42)
         if not ocr.words:
             warnings.append("OCR에서 텍스트를 추출하지 못했습니다.")

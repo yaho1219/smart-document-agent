@@ -58,7 +58,15 @@ def run_ocr(
     try:
         if verbose:
             print("[OCR] 텍스트 추출 중...", flush=True)
-        raw = reader.readtext(path)
+        # canvas_size/mag_ratio: 작은 글씨(카드명, 품목 등) 인식률 향상
+        raw = reader.readtext(
+            path,
+            paragraph=False,
+            canvas_size=2240,
+            mag_ratio=1.5,
+            text_threshold=0.6,
+            low_text=0.35,
+        )
     finally:
         if tmp:
             import os

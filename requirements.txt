@@ -2,6 +2,8 @@
 streamlit==1.39.0
 pyyaml==6.0.2
 requests==2.32.3
+urllib3<2.0.0              # macOS LibreSSL 호환
+PyQt6==6.7.1               # 데스크톱 GUI (tkinter 대체)
 pillow==10.4.0
 
 # --- Vision / OCR ---

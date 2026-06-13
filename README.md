@@ -27,13 +27,14 @@ Vision(이미지 처리)과 NLP(의미 파악)를 결합해 명함/영수증을 
 | 정보 구조화 | Ollama 로컬 LLM (Llama-3) |
 | 검증 | Pydantic v2 |
 | 저장/내보내기 | SQLite, pandas + openpyxl |
-| UI | Python CLI (`main.py`) |
+| UI | PyQt6 데스크톱 (`app_gui.py`) |
 
 ## 프로젝트 구조
 
 ```
 DeepLearning/
-├── main.py                         # CLI 메인 프로그램 (권장)
+├── app_gui.py                      # 데스크톱 GUI (권장)
+├── main.py                         # CLI
 ├── app.py                          # Streamlit UI (선택)
 ├── requirements.txt
 ├── config/settings.yaml            # 모델/경로/임계값 설정
@@ -85,17 +86,23 @@ python scripts/train_layoutlm.py
 
 3. **샘플 이미지**: `data/samples/`에 명함/영수증 이미지를 넣고 `labels.csv`를 맞추세요.
 
-## 실행 (Python CLI)
+## 실행 (데스크톱 GUI — 권장)
 
 ```bash
 source .venv/bin/activate
-python main.py                    # 대화형 메뉴
-python main.py receipt.jpg          # 단일 이미지
-python main.py -f data/samples    # 폴더 일괄 처리
-python main.py --history          # DB 이력 조회
+python app_gui.py
 ```
 
-**첫 실행 시 PaddleOCR 모델 다운로드로 1~3분 걸릴 수 있습니다.** 터미널에 진행 메시지가 표시됩니다.
+파일 선택 창으로 이미지를 추가하고 **처리 시작** 버튼을 누르면 됩니다.
+
+**첫 실행 시 OCR 모델 로딩으로 30~60초 걸릴 수 있습니다.** 하단 상태바에서 진행을 확인할 수 있습니다.
+
+### CLI (터미널)
+
+```bash
+python main.py receipt.jpg
+python main.py -f data/samples
+```
 
 > (선택) 웹 UI: `streamlit run app.py`
 
@@ -109,7 +116,7 @@ python main.py --history          # DB 이력 조회
 | **PM & AI Lead** | 아키텍처 설계, 모델 선정/통합 | `src/pipeline/agent.py`, `config/settings.yaml` |
 | **CV Engineer** | OpenCV 전처리, PaddleOCR 최적화, 왜곡 보정 | `src/preprocessing/`, `src/ocr/` |
 | **NLP Engineer** | 로컬 LLM(Ollama), 프롬프트/파싱 로직 | `src/extraction/`, `src/classification/` |
-| **Dev Engineer** | CLI UI, Excel/DB 저장 자동화 | `main.py`, `src/storage/` |
+| **Dev Engineer** | GUI/CLI, Excel/DB 저장 자동화 | `app_gui.py`, `src/storage/` |
 
 ## 폴백(Fallback) 설계
 

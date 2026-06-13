@@ -62,26 +62,54 @@ def _card_rows(results: list[DocumentResult]) -> list[dict]:
     return rows
 
 
+_RECEIPT_COLUMNS = [
+    "파일", "상호명", "거래일", "품목", "공급가액", "부가세", "합계",
+    "결제수단", "신뢰도", "처리시각",
+]
+_CARD_COLUMNS = [
+    "파일", "이름", "회사", "직책", "전화", "이메일", "주소", "웹사이트",
+    "신뢰도", "처리시각",
+]
+
+
+def _load_existing(path: Path, sheet: str, columns: list[str]) -> pd.DataFrame:
+    """기존 파일의 시트를 읽는다. 없거나 깨졌으면 빈 DataFrame."""
+    if not path.exists():
+        return pd.DataFrame(columns=columns)
+    try:
+        return pd.read_excel(path, sheet_name=sheet)
+    except Exception:
+        return pd.DataFrame(columns=columns)
+
+
 def export_to_excel(
     results: list[DocumentResult], filename: str | None = None
 ) -> Path:
-    """결과 리스트를 xlsx로 저장하고 경로를 반환한다."""
+    """결과를 날짜별 xlsx 파일 하나에 누적 저장한다.
+
+    같은 날 여러 번 처리해도 documents_YYYYMMDD.xlsx 한 파일에
+    행이 계속 추가된다. (파일+처리시각 기준 중복 제거)
+    """
     out_dir = ensure_dir(load_config().get("paths", {}).get("output_dir", "data/output"))
     if filename is None:
-        filename = f"documents_{datetime.now():%Y%m%d_%H%M%S}.xlsx"
+        filename = f"documents_{datetime.now():%Y%m%d}.xlsx"
     out_path = out_dir / filename
 
-    receipt_df = pd.DataFrame(_receipt_rows(results))
-    card_df = pd.DataFrame(_card_rows(results))
+    new_receipts = pd.DataFrame(_receipt_rows(results), columns=_RECEIPT_COLUMNS)
+    new_cards = pd.DataFrame(_card_rows(results), columns=_CARD_COLUMNS)
+
+    receipt_df = pd.concat(
+        [_load_existing(out_path, "Receipts", _RECEIPT_COLUMNS), new_receipts],
+        ignore_index=True,
+    ).drop_duplicates(subset=["파일", "처리시각"], keep="last")
+
+    card_df = pd.concat(
+        [_load_existing(out_path, "BusinessCards", _CARD_COLUMNS), new_cards],
+        ignore_index=True,
+    ).drop_duplicates(subset=["파일", "처리시각"], keep="last")
 
     with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
-        # 빈 DataFrame이어도 시트는 생성해 일관성 유지
-        (receipt_df if not receipt_df.empty else pd.DataFrame(
-            columns=["파일", "상호명", "거래일", "품목", "공급가액", "부가세", "합계", "결제수단"]
-        )).to_excel(writer, sheet_name="Receipts", index=False)
-
-        (card_df if not card_df.empty else pd.DataFrame(
-            columns=["파일", "이름", "회사", "직책", "전화", "이메일", "주소", "웹사이트"]
-        )).to_excel(writer, sheet_name="BusinessCards", index=False)
+        receipt_df.to_excel(writer, sheet_name="Receipts", index=False)
+        card_df.to_excel(writer, sheet_name="BusinessCards", index=False)
 
     return out_path
