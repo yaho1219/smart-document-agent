@@ -1,27 +1,22 @@
-# --- Core / UI ---
 streamlit==1.39.0
 pyyaml==6.0.2
 requests==2.32.3
-urllib3<2.0.0              # macOS LibreSSL 호환
-PyQt6==6.7.1               # 데스크톱 GUI (tkinter 대체)
+urllib3<2.0.0
+PyQt6==6.7.1
 pillow==10.4.0
 
-# --- Vision / OCR ---
 opencv-python==4.10.0.84
 numpy>=1.26.4,<2.0
-easyocr==1.7.2        # Mac ARM 기본 OCR (PaddleOCR 멈춤 대안)
-paddleocr==2.8.1      # 선택: config ocr.engine=paddle
+easyocr==1.7.2
+paddleocr==2.8.1
 paddlepaddle==2.6.2
 
-# --- Document understanding (LayoutLM) ---
 torch==2.2.2
 transformers==4.44.2
 datasets==2.21.0
 accelerate==0.34.2
 
-# --- Structuring / Validation ---
 pydantic==2.9.2
 
-# --- Storage / Export ---
 pandas==2.2.3
 openpyxl==3.1.5

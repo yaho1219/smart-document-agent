@@ -1,21 +1,9 @@
-"""LayoutLM 기반 문서 분류 (영수증 / 명함 / 미상).
-
-하이브리드 1단계. 학습된 LayoutLM 가중치가 있으면 bbox+text를 함께
-사용해 분류하고, 없거나 신뢰도가 낮으면 키워드 규칙으로 fallback 한다.
-
-LayoutLM은 OCR 박스 좌표를 0~1000 정규화해 입력받는 점이 일반
-텍스트 분류기와 다르다.
-
-담당: PM & AI Lead (모델 선정/통합), NLP Engineer (규칙)
-"""
 from __future__ import annotations
 
 from pathlib import Path
 
 from src.config import load_config, resolve_path
 from src.schemas import ClassificationResult, DocumentType, OCRResult
-
-# --- 키워드 fallback 사전 -------------------------------------------
 
 _RECEIPT_KEYWORDS = [
     "합계", "소계", "부가세", "공급가액", "결제", "카드", "현금영수증",
@@ -38,7 +26,6 @@ def _keyword_score(text: str, keywords: list[str]) -> int:
 
 
 def _fallback_classify(ocr: OCRResult) -> ClassificationResult:
-    """키워드 출현 빈도로 문서 유형을 추정한다."""
     text = ocr.full_text
     if not text.strip():
         return ClassificationResult(
@@ -67,7 +54,6 @@ def _fallback_classify(ocr: OCRResult) -> ClassificationResult:
 
 
 def _load_layoutlm():
-    """학습된 LayoutLM 가중치를 1회 로드한다. 없으면 (None, None)."""
     global _model, _tokenizer
     if _model is not None:
         return _model, _tokenizer
@@ -93,12 +79,10 @@ def _load_layoutlm():
         _model.eval()
         return _model, _tokenizer
     except Exception:
-        # 로딩 실패 시 안전하게 fallback로 회귀
         return None, None
 
 
 def _normalize_bbox(bbox: list[int], width: int, height: int) -> list[int]:
-    """OCR 픽셀 bbox를 LayoutLM의 0~1000 좌표계로 정규화한다."""
     if not bbox or width == 0 or height == 0:
         return [0, 0, 0, 0]
     x0, y0, x1, y1 = bbox
@@ -111,7 +95,6 @@ def _normalize_bbox(bbox: list[int], width: int, height: int) -> list[int]:
 
 
 def _layoutlm_classify(ocr: OCRResult) -> ClassificationResult | None:
-    """LayoutLM 추론. 모델이 없거나 오류 시 None 반환."""
     model, tokenizer = _load_layoutlm()
     if model is None or not ocr.words:
         return None
@@ -124,7 +107,6 @@ def _layoutlm_classify(ocr: OCRResult) -> ClassificationResult | None:
             "labels", ["receipt", "business_card", "unknown"]
         )
 
-        # 전체 이미지 좌표계 추정(최대 좌표값 사용)
         max_x = max((w.bbox[2] for w in ocr.words if w.bbox), default=1)
         max_y = max((w.bbox[3] for w in ocr.words if w.bbox), default=1)
 
@@ -140,7 +122,6 @@ def _layoutlm_classify(ocr: OCRResult) -> ClassificationResult | None:
             max_length=512,
         )
 
-        # 토큰별 bbox 정렬 (word_ids 기반)
         word_ids = encoding.word_ids(0)
         token_boxes = []
         for wid in word_ids:
@@ -167,11 +148,6 @@ def _layoutlm_classify(ocr: OCRResult) -> ClassificationResult | None:
 
 
 def classify_document(ocr: OCRResult) -> ClassificationResult:
-    """문서 유형을 분류한다.
-
-    1) LayoutLM 추론 시도
-    2) 모델이 없거나 신뢰도가 임계값 미만이면 키워드 fallback 사용
-    """
     cfg = load_config().get("classification", {})
     threshold = cfg.get("confidence_threshold", 0.55)
 

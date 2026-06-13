@@ -1,14 +1,4 @@
 #!/usr/bin/env python3
-"""온프레미스 스마트 명함/영수증 자동 정리 에이전트 (CLI).
-
-웹 브라우저 없이 터미널에서 실행하는 Python 프로그램입니다.
-
-사용 예:
-    python main.py                          # 대화형 메뉴
-    python main.py image.jpg                # 단일 이미지 처리
-    python main.py -f data/samples          # 폴더 내 이미지 일괄 처리
-    python main.py --history                # DB 저장 이력 조회
-"""
 from __future__ import annotations
 
 import argparse
@@ -16,7 +6,6 @@ import json
 import sys
 from pathlib import Path
 
-# 프로젝트 루트를 import 경로에 추가
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
@@ -31,7 +20,6 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff", ".tif"}
 
 
 def _print_bar(stage: str, pct: float) -> None:
-    """터미널 진행 표시."""
     filled = int(pct * 40)
     bar = "█" * filled + "░" * (40 - filled)
     print(f"\r  [{bar}] {pct * 100:5.1f}%  {stage:<28}", end="", flush=True)
@@ -48,7 +36,6 @@ def _doc_type_label(doc_type: DocumentType) -> str:
 
 
 def _print_result(result: DocumentResult) -> None:
-    """처리 결과를 터미널에 출력한다."""
     print()
     print("=" * 60)
     print(f"파일      : {result.source_file}")
@@ -78,7 +65,6 @@ def _print_result(result: DocumentResult) -> None:
 
 
 def _collect_images(path: Path) -> list[Path]:
-    """파일 또는 폴더에서 처리할 이미지 목록을 수집한다."""
     if path.is_file():
         return [path] if path.suffix.lower() in IMAGE_EXTS else []
     if path.is_dir():
@@ -96,7 +82,6 @@ def process_paths(
     export: bool = True,
     verbose: bool = True,
 ) -> list[DocumentResult]:
-    """이미지 경로 목록을 순서대로 처리한다."""
     if not paths:
         print("처리할 이미지가 없습니다.")
         return []
@@ -114,7 +99,6 @@ def process_paths(
         print(f"\n>>> [{i}/{len(paths)}] {img_path.name} 처리 중...")
 
         def progress(stage: str, pct: float, _i=i, _n=len(paths)) -> None:
-            # 전체 진행률 = (완료된 파일 + 현재 파일 진행) / 전체
             overall = ((_i - 1) + pct) / _n
             _print_bar(f"{img_path.name}: {stage}", overall)
 
@@ -135,7 +119,6 @@ def process_paths(
 
 
 def show_history() -> None:
-    """SQLite 저장 이력을 출력한다."""
     rows = db.fetch_all()
     if not rows:
         print("저장된 이력이 없습니다.")
@@ -151,7 +134,6 @@ def show_history() -> None:
 
 
 def interactive_menu() -> None:
-    """인자 없이 실행 시 대화형 메뉴."""
     print()
     print("=" * 60)
     print("  온프레미스 스마트 명함·영수증 자동 정리 에이전트")
@@ -248,7 +230,6 @@ def main() -> int:
         )
         return 0
 
-    # 인자 없으면 대화형 메뉴
     interactive_menu()
     return 0
 

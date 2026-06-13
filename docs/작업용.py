@@ -1,10 +1,19 @@
-def preprocess_image(image, *, do_deskew=True, max_side=1920):
-    original = _read_image(image)
-    work = resize_if_needed(original, max_side)
+def save_result(result: DocumentResult) -> int:
+    conn.execute(
+        "INSERT INTO documents (source_file, doc_type, confidence, ocr_text, structured, processed_at) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        (
+            result.source_file,
+            result.classification.doc_type.value,
+            result.classification.confidence,
+            result.ocr.full_text,
+            json.dumps(result.structured_dict(), ensure_ascii=False),
+            result.processed_at.isoformat(),
+        ),
+    )
 
-    if do_deskew:                              # ① 기울기 보정
-        angle = _estimate_skew(gray)
-        work = cv2.warpAffine(work, matrix, ...)
 
-    processed = _enhance_color(work)           # ② CLAHE + 샤프닝
-    return PreprocessResult(original, processed)
+
+
+
+    

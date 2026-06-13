@@ -1,8 +1,3 @@
-"""OCR 엔진 팩토리.
-
-Mac ARM에서는 PaddleOCR이 멈출 수 있어 기본값은 EasyOCR이다.
-config/settings.yaml 의 ocr.engine 으로 변경 가능: easyocr | paddle
-"""
 from __future__ import annotations
 
 from src.config import load_config

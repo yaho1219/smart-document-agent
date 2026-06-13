@@ -1,17 +1,3 @@
-"""LayoutLM 문서 분류기 소량 파인튜닝.
-
-`data/samples/labels.csv` (filename,label)를 읽어 각 이미지를 OCR한 뒤
-LayoutLM 시퀀스 분류기를 학습한다. 기말 보고서용 학습 코드이며, 샘플이
-적을 경우 키워드 fallback이 실제 데모를 책임진다.
-
-labels.csv 예시:
-    filename,label
-    receipt_01.jpg,receipt
-    card_01.jpg,business_card
-
-사용:
-    python scripts/train_layoutlm.py
-"""
 from __future__ import annotations
 
 import sys
@@ -62,7 +48,6 @@ def main() -> None:
     model_name = cls_cfg.get("model_name", "microsoft/layoutlm-base-uncased")
     tokenizer = LayoutLMTokenizer.from_pretrained(model_name)
 
-    # --- OCR로 학습 샘플 준비 ---
     encoded_samples = []
     for _, row in df.iterrows():
         img_path = samples_dir / str(row["filename"])

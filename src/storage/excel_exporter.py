@@ -1,9 +1,3 @@
-"""Excel 내보내기.
-
-처리 결과를 영수증/명함 시트로 분리해 .xlsx로 저장한다.
-
-담당: Dev Engineer
-"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -73,7 +67,6 @@ _CARD_COLUMNS = [
 
 
 def _load_existing(path: Path, sheet: str, columns: list[str]) -> pd.DataFrame:
-    """기존 파일의 시트를 읽는다. 없거나 깨졌으면 빈 DataFrame."""
     if not path.exists():
         return pd.DataFrame(columns=columns)
     try:
@@ -85,11 +78,6 @@ def _load_existing(path: Path, sheet: str, columns: list[str]) -> pd.DataFrame:
 def export_to_excel(
     results: list[DocumentResult], filename: str | None = None
 ) -> Path:
-    """결과를 날짜별 xlsx 파일 하나에 누적 저장한다.
-
-    같은 날 여러 번 처리해도 documents_YYYYMMDD.xlsx 한 파일에
-    행이 계속 추가된다. (파일+처리시각 기준 중복 제거)
-    """
     out_dir = ensure_dir(load_config().get("paths", {}).get("output_dir", "data/output"))
     if filename is None:
         filename = f"documents_{datetime.now():%Y%m%d}.xlsx"

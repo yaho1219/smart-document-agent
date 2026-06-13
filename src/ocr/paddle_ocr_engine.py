@@ -1,11 +1,3 @@
-"""PaddleOCR 래퍼.
-
-한국어 인식 성능이 우수한 PaddleOCR을 로컬에서 구동한다.
-Mac ARM 환경에서 스레드 데드락/멈춤을 피하기 위해 단일 스레드·
-임시 파일 경로 입력·타임아웃을 적용한다.
-
-담당: CV Engineer
-"""
 from __future__ import annotations
 
 import os
@@ -19,7 +11,6 @@ import numpy as np
 from src.config import load_config
 from src.schemas import OCRResult, OCRWord
 
-# Mac CPU에서 OpenMP/MKL 스레드 충돌로 멈추는 경우 방지
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
@@ -29,7 +20,6 @@ _engine = None
 
 
 def _get_engine(*, verbose: bool = False):
-    """PaddleOCR 인스턴스를 한 번만 생성해 재사용한다."""
     global _engine
     if _engine is None:
         if verbose:
@@ -43,7 +33,7 @@ def _get_engine(*, verbose: bool = False):
         cfg = load_config().get("ocr", {})
         _engine = PaddleOCR(
             lang=cfg.get("lang", "korean"),
-            use_angle_cls=cfg.get("use_angle_cls", False),  # Mac에서 hang 방지
+            use_angle_cls=cfg.get("use_angle_cls", False),
             use_gpu=cfg.get("use_gpu", False),
             show_log=False,
             cpu_threads=cfg.get("cpu_threads", 1),
@@ -55,7 +45,6 @@ def _get_engine(*, verbose: bool = False):
 
 
 def warmup_ocr(*, verbose: bool = True) -> None:
-    """앱 시작 시 OCR 엔진을 미리 로드한다."""
     _get_engine(verbose=verbose)
 
 
@@ -86,7 +75,6 @@ def _parse_raw(raw) -> OCRResult:
 
 
 def _to_ocr_path(image: np.ndarray | str | Path) -> tuple[str, str | None]:
-    """PaddleOCR 입력용 경로를 반환한다. ndarray면 임시 파일로 저장."""
     if isinstance(image, (str, Path)):
         return str(image), None
 
@@ -100,7 +88,6 @@ def _to_ocr_path(image: np.ndarray | str | Path) -> tuple[str, str | None]:
 
 
 def _call_ocr(engine, image_path: str, *, use_cls: bool, timeout: int):
-    """타임아웃을 걸어 OCR을 실행한다."""
     with ThreadPoolExecutor(max_workers=1) as pool:
         future = pool.submit(engine.ocr, image_path, cls=use_cls)
         try:
@@ -117,7 +104,6 @@ def run_ocr(
     *,
     verbose: bool = False,
 ) -> OCRResult:
-    """이미지에서 텍스트를 추출한다."""
     cfg = load_config().get("ocr", {})
     timeout = int(cfg.get("timeout_seconds", 120))
     use_cls = bool(cfg.get("use_angle_cls", False))

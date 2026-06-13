@@ -1,11 +1,3 @@
-"""Streamlit UI: 온프레미스 스마트 명함/영수증 자동 정리 에이전트.
-
-업로드 → 단계별 처리 시각화 → 결과 확인 → Excel/DB 내보내기.
-모든 추론은 로컬에서 수행되며 외부 API를 호출하지 않는다.
-
-담당: Dev Engineer
-실행: streamlit run app.py
-"""
 from __future__ import annotations
 
 import sys
@@ -49,7 +41,6 @@ def _sidebar():
         0.05,
     )
 
-    # 런타임 오버라이드 (캐시된 config dict를 직접 수정)
     cfg.setdefault("extraction", {})["model"] = model
     cfg.setdefault("classification", {})["confidence_threshold"] = threshold
 
@@ -117,7 +108,6 @@ def tab_upload():
         progress_bar = st.progress(0.0, text="대기 중...")
 
         for idx, file in enumerate(files):
-            # 업로드 바이트 → ndarray
             import numpy as np
 
             data = np.frombuffer(file.getvalue(), dtype=np.uint8)

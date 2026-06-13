@@ -1,15 +1,7 @@
-"""SQLite 영속화.
-
-처리 이력(원본 파일, OCR 원문, 분류 결과, 구조화 JSON)을 로컬 DB에
-저장한다. 외부 전송 없이 노트북 안에 모든 데이터를 보관한다.
-
-담당: Dev Engineer
-"""
 from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime
 
 from src.config import ensure_dir, load_config, resolve_path
 from src.schemas import DocumentResult
@@ -41,13 +33,11 @@ def _connect() -> sqlite3.Connection:
 
 
 def init_db() -> None:
-    """테이블을 생성한다(존재 시 무시)."""
     with _connect() as conn:
         conn.executescript(_SCHEMA)
 
 
 def save_result(result: DocumentResult) -> int:
-    """처리 결과 1건을 저장하고 row id를 반환한다."""
     init_db()
     with _connect() as conn:
         cur = conn.execute(
@@ -70,7 +60,6 @@ def save_result(result: DocumentResult) -> int:
 
 
 def fetch_all(limit: int = 200) -> list[dict]:
-    """저장된 처리 이력을 최신순으로 반환한다."""
     init_db()
     with _connect() as conn:
         rows = conn.execute(
@@ -80,7 +69,6 @@ def fetch_all(limit: int = 200) -> list[dict]:
 
 
 def clear_all() -> None:
-    """모든 이력을 삭제한다(데모 초기화용)."""
     init_db()
     with _connect() as conn:
         conn.execute("DELETE FROM documents")

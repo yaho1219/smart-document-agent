@@ -1,10 +1,3 @@
-"""EasyOCR 래퍼 (Mac ARM 권장).
-
-PaddleOCR이 Mac CPU에서 멈추는 문제가 있어, 로컬 환경에서는
-EasyOCR을 기본 엔진으로 사용한다. PyTorch 기반이며 한국어 지원.
-
-담당: CV Engineer
-"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -58,7 +51,6 @@ def run_ocr(
     try:
         if verbose:
             print("[OCR] 텍스트 추출 중...", flush=True)
-        # canvas_size/mag_ratio: 작은 글씨(카드명, 품목 등) 인식률 향상
         raw = reader.readtext(
             path,
             paragraph=False,

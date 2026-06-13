@@ -1,10 +1,3 @@
-"""로컬 LLM(Ollama) 정보 구조화용 프롬프트.
-
-문서 유형별로 추출할 필드를 JSON 스키마로 명시해 LLM이 일관된
-형식으로 응답하도록 유도한다.
-
-담당: NLP Engineer
-"""
 from __future__ import annotations
 
 RECEIPT_SCHEMA = """{
@@ -28,28 +21,36 @@ BUSINESS_CARD_SCHEMA = """{
 }"""
 
 _BASE_INSTRUCTION = (
-    "You are an information extraction engine for Korean business documents. "
-    "Read the OCR text and return ONLY a valid JSON object that matches the "
-    "given schema. Do not add explanations, markdown, or code fences.\n"
-    "STRICT RULES:\n"
-    "1. Copy every value VERBATIM from the OCR text. NEVER invent, translate, "
-    "or paraphrase. If a value is not present in the OCR text, use an empty "
-    "string or null.\n"
-    "2. payment_method must be the exact card/payment name as written in the "
-    "OCR text (e.g. 'NH카드', 'IBK비씨카드', '신한카드', '현금'). Do not "
-    "substitute it with a generic or different card name.\n"
-    "3. date must be normalized to YYYY-MM-DD format.\n"
-    "4. total is the final charged amount, usually labeled 합계, 총액, "
-    "결제금액, or 받을금액. It is normally the largest amount.\n"
-    "5. Numbers must be plain digits without currency symbols or thousands "
-    "separators.\n"
-    "6. OCR text may contain typos from misrecognition; still copy values "
-    "as written rather than guessing replacements."
+    "당신은 한국어 비즈니스 문서를 위한 정보 추출 엔진입니다. "
+    "OCR 텍스트를 읽고 주어진 스키마에 맞는 유효한 JSON 객체만 반환하세요. "
+    "설명, 마크다운, 코드 블록은 절대 추가하지 마세요.\n"
+
+    "엄격한 규칙:\n"
+
+    "1. 모든 값은 OCR 텍스트에 있는 그대로(VERBATIM) 복사하세요. "
+    "절대로 값을 만들어내거나, 번역하거나, 의역하지 마세요. "
+    "OCR 텍스트에 값이 존재하지 않으면 빈 문자열(\"\") 또는 null을 사용하세요.\n"
+
+    "2. payment_method는 OCR 텍스트에 적힌 카드명 또는 결제수단명을 "
+    "그대로 사용해야 합니다. "
+    "(예: 'NH카드', 'IBK비씨카드', '신한카드', '현금') "
+    "일반적인 카드명이나 다른 카드명으로 대체하지 마세요.\n"
+
+    "3. date는 YYYY-MM-DD 형식으로 정규화해야 합니다.\n"
+
+    "4. total은 최종 결제 금액입니다. "
+    "보통 '합계', '총액', '결제금액', '받을금액' 등의 항목에 해당하며, "
+    "일반적으로 가장 큰 금액입니다.\n"
+
+    "5. 숫자는 통화 기호(₩, 원 등)나 천 단위 구분 쉼표 없이 "
+    "숫자만 포함해야 합니다.\n"
+
+    "6. OCR 텍스트에는 인식 오류(오타)가 포함될 수 있습니다. "
+    "이 경우에도 추측해서 수정하지 말고 OCR에 인식된 그대로 복사하세요."
 )
 
 
 def build_prompt(doc_type: str, ocr_text: str) -> str:
-    """문서 유형에 맞는 추출 프롬프트를 생성한다."""
     schema = BUSINESS_CARD_SCHEMA if doc_type == "business_card" else RECEIPT_SCHEMA
     kind = "business card" if doc_type == "business_card" else "receipt"
     return (

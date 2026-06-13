@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""온프레미스 스마트 명함/영수증 자동 정리 에이전트 — 데스크톱 GUI (PyQt6).
-
-macOS 26 등 최신 macOS에서 시스템 tkinter가 동작하지 않아 PyQt6를 사용합니다.
-
-사용법:
-    python app_gui.py
-"""
 from __future__ import annotations
 
 import subprocess
@@ -135,7 +128,6 @@ class DocumentAgentApp(QMainWindow):
         self.setCentralWidget(central)
         layout = QHBoxLayout(central)
 
-        # ── 왼쪽 패널 ──
         left = QWidget()
         left.setFixedWidth(280)
         left_layout = QVBoxLayout(left)
@@ -185,7 +177,6 @@ class DocumentAgentApp(QMainWindow):
             b.clicked.connect(slot)
             left_layout.addWidget(b)
 
-        # ── 오른쪽 탭 ──
         self._tabs = QTabWidget()
 
         self._preview_lbl = QLabel("이미지를 선택하세요")
@@ -232,8 +223,6 @@ class DocumentAgentApp(QMainWindow):
         self.setStatusBar(self._status)
         self._refresh_history()
 
-    # ── 초기화 ──
-
     def _on_warmup_done(self, ok: bool, msg: str) -> None:
         self._stage_lbl.setText(msg)
         self._status.showMessage(msg)
@@ -242,8 +231,6 @@ class DocumentAgentApp(QMainWindow):
         ok = is_ollama_available()
         suffix = "연결됨" if ok else "미연결 (정규식 fallback)"
         self._status.showMessage(f"Ollama: {suffix}  |  온프레미스 · 데이터 외부 전송 없음")
-
-    # ── 파일 관리 ──
 
     def _add_files(self) -> None:
         paths, _ = QFileDialog.getOpenFileNames(
@@ -295,8 +282,6 @@ class DocumentAgentApp(QMainWindow):
                 self._show_result(r)
                 break
 
-    # ── 처리 ──
-
     def _start_processing(self) -> None:
         if self._process_thread and self._process_thread.isRunning():
             return
@@ -332,8 +317,6 @@ class DocumentAgentApp(QMainWindow):
         self._refresh_history()
         if self._results:
             self._tabs.setCurrentIndex(2)
-
-    # ── 결과 표시 ──
 
     def _show_result(self, result: DocumentResult) -> None:
         if result not in self._results:
@@ -372,8 +355,6 @@ class DocumentAgentApp(QMainWindow):
                 lines.append(f"{label}: {val}")
 
         self._result_text.setPlainText("\n".join(lines))
-
-    # ──보내기 / 이력 ──
 
     def _export_excel(self) -> None:
         if not self._results:
@@ -416,7 +397,6 @@ class DocumentAgentApp(QMainWindow):
 
 
 def main() -> None:
-    # urllib3 LibreSSL 경고 억제
     import warnings
     warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL")
 
